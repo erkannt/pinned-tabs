@@ -1,125 +1,309 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const saveBtn = document.getElementById('saveBtn');
-  const restoreBtn = document.getElementById('restoreBtn');
-  const messageContainer = document.getElementById('messageContainer');
-  const savedCount = document.getElementById('savedCount');
-  const savedTimestamp = document.getElementById('savedTimestamp');
-  const savedTabs = document.getElementById('savedTabs');
+document.addEventListener("DOMContentLoaded", function () {
+  const saveBtn = document.getElementById("saveBtn");
+  const restoreBtn = document.getElementById("restoreBtn");
+  const messageContainer = document.getElementById("messageContainer");
+  const savedCount = document.getElementById("savedCount");
+  const savedTimestamp = document.getElementById("savedTimestamp");
+  const savedTabs = document.getElementById("savedTabs");
 
   // Show message function
   function showMessage(text, type) {
     messageContainer.innerHTML = `<div class="message ${type}">${text}</div>`;
     setTimeout(() => {
-      messageContainer.innerHTML = '';
+      messageContainer.innerHTML = "";
     }, 3000);
+  }
+
+  // Get container information for a given cookieStoreId
+  async function getContainerInfo(cookieStoreId) {
+    // Handle default container (no container)
+    if (!cookieStoreId || cookieStoreId === "firefox-default") {
+      return {
+        name: "Default",
+        color: null,
+        icon: null,
+        iconUrl: null,
+        isDefault: true,
+      };
+    }
+
+    try {
+      const container = await browser.contextualIdentities.get(cookieStoreId);
+      if (container) {
+        return {
+          name: container.name,
+          color: container.color,
+          icon: container.icon,
+          iconUrl: container.iconUrl,
+          isDefault: false,
+        };
+      }
+    } catch (error) {
+      console.warn("Container not found:", cookieStoreId);
+    }
+
+    // Container not found or doesn't exist
+    return null;
+  }
+
+  // Get all container information for tabs
+  async function getContainerInfoForTabs(tabs) {
+    const containerPromises = tabs.map(async (tab) => {
+      const containerInfo = await getContainerInfo(tab.cookieStoreId);
+      return {
+        ...tab,
+        containerInfo: containerInfo,
+      };
+    });
+
+    return Promise.all(containerPromises);
+  }
+
+  // Recreate a deleted container
+  async function recreateContainer(containerInfo) {
+    if (!containerInfo || containerInfo.isDefault) {
+      return null;
+    }
+
+    try {
+      const newContainer = await browser.contextualIdentities.create({
+        name: containerInfo.name,
+        color: containerInfo.color,
+        icon: containerInfo.icon,
+      });
+      return newContainer.cookieStoreId;
+    } catch (error) {
+      console.warn("Failed to recreate container:", error);
+      return null;
+    }
+  }
+
+  // Get container color CSS
+  function getContainerColor(color) {
+    const colorMap = {
+      blue: "#0060df",
+      turquoise: "#00b1b4",
+      green: "#12bc00",
+      yellow: "#ffe900",
+      orange: "#ff9400",
+      red: "#e31587",
+      pink: "#ff4bda",
+      purple: "#9400ff",
+      toolbar: "#7c7c7d",
+    };
+    return colorMap[color] || "#7c7c7d";
+  }
+
+  // Get container icon URL
+  function getContainerIcon(icon) {
+    if (!icon) return null;
+    return `resource://usercontext-content/${icon}.svg`;
+  }
+
+  // Check if cookies permission is available
+  async function checkCookiesPermission() {
+    try {
+      // Try to access cookies API to check permission
+      const allCookies = await browser.cookies.getAll({});
+      return true;
+    } catch (error) {
+      console.warn("Cookies permission not available:", error);
+      return false;
+    }
   }
 
   // Save pinned tabs function
   async function savePinnedTabs() {
     try {
+      // Check if cookies permission is available (needed for container support)
+      const hasCookiesPermission = await checkCookiesPermission();
+      if (!hasCookiesPermission) {
+        showMessage(
+          "Warning: cookies permission not granted. Container support may be limited.",
+          "error",
+        );
+      }
+
       // Get current window's pinned tabs
       const tabs = await browser.tabs.query({
         pinned: true,
-        currentWindow: true
+        currentWindow: true,
       });
 
       if (tabs.length === 0) {
-        showMessage('No pinned tabs found to save', 'error');
+        showMessage("No pinned tabs found to save", "error");
         return;
       }
 
-      // Extract relevant tab information
-      const tabData = tabs.map(tab => ({
+      // Get container information for all tabs
+      const tabsWithContainers = await getContainerInfoForTabs(tabs);
+
+      // Extract relevant tab information with container data
+      const tabData = tabsWithContainers.map((tab) => ({
         url: tab.url,
         title: tab.title,
         pinned: tab.pinned,
         cookieStoreId: tab.cookieStoreId,
+        containerInfo: tab.containerInfo,
         active: tab.active,
-        index: tab.index
+        index: tab.index,
       }));
 
       // Create collection object
       const collection = {
         tabs: tabData,
         timestamp: Date.now(),
-        windowId: (await browser.windows.getCurrent()).id
+        windowId: (await browser.windows.getCurrent()).id,
       };
 
       // Save to local storage
       await browser.storage.local.set({
-        savedTabs: collection
+        savedTabs: collection,
       });
 
-      showMessage(`Saved ${tabs.length} pinned tab(s)`, 'success');
+      showMessage(
+        `Saved ${tabs.length} pinned tab(s) with container information`,
+        "success",
+      );
       updateDisplay();
-
     } catch (error) {
-      console.error('Error saving tabs:', error);
-      showMessage('Failed to save tabs', 'error');
+      console.error("Error saving tabs:", error);
+      showMessage("Failed to save tabs", "error");
     }
   }
 
   // Restore pinned tabs function
   async function restorePinnedTabs() {
     try {
+      // Check if cookies permission is available (needed for container support)
+      const hasCookiesPermission = await checkCookiesPermission();
+      if (!hasCookiesPermission) {
+        showMessage(
+          "Warning: cookies permission not granted. Container restoration may fail.",
+          "error",
+        );
+      }
+
       // Get saved collection
-      const result = await browser.storage.local.get('savedTabs');
+      const result = await browser.storage.local.get("savedTabs");
       const collection = result.savedTabs;
 
       if (!collection || !collection.tabs || collection.tabs.length === 0) {
-        showMessage('No saved tabs found to restore', 'error');
+        showMessage("No saved tabs found to restore", "error");
         return;
       }
 
       // Get current window's pinned tabs
       const currentPinnedTabs = await browser.tabs.query({
         pinned: true,
-        currentWindow: true
+        currentWindow: true,
       });
 
       // Remove existing pinned tabs
       if (currentPinnedTabs.length > 0) {
-        const tabIds = currentPinnedTabs.map(tab => tab.id);
+        const tabIds = currentPinnedTabs.map((tab) => tab.id);
         await browser.tabs.remove(tabIds);
       }
+
+      let restoredCount = 0;
+      let missingContainers = [];
 
       // Create new tabs from saved data
       for (const tabData of collection.tabs) {
         try {
+          let cookieStoreId = tabData.cookieStoreId;
+
+          // Check if container still exists
+          if (cookieStoreId && cookieStoreId !== "firefox-default") {
+            const currentContainer = await getContainerInfo(cookieStoreId);
+            if (!currentContainer) {
+              // Container doesn't exist, try to recreate it
+              missingContainers.push(tabData.containerInfo?.name || "Unknown");
+              const newCookieStoreId = await recreateContainer(
+                tabData.containerInfo,
+              );
+              if (newCookieStoreId) {
+                cookieStoreId = newCookieStoreId;
+              } else {
+                cookieStoreId = null; // Fall back to default
+              }
+            }
+          }
+
           await browser.tabs.create({
             url: tabData.url,
             pinned: true,
-            cookieStoreId: tabData.cookieStoreId,
-            active: tabData.active
+            cookieStoreId: cookieStoreId,
+            active: tabData.active,
           });
+          restoredCount++;
         } catch (createError) {
-          // If container doesn't exist, create without cookieStoreId
-          console.warn('Failed to create tab with container, falling back:', createError);
-          await browser.tabs.create({
-            url: tabData.url,
-            pinned: true,
-            active: tabData.active
-          });
+          console.warn("Failed to create tab:", createError);
+
+          // Handle specific error cases
+          if (
+            createError.message &&
+            createError.message.includes("No permission")
+          ) {
+            // Permission error - likely missing cookies permission (should be fixed now)
+            console.error(
+              "Permission error creating tab - cookies permission may not be granted",
+            );
+          } else if (
+            createError.message &&
+            createError.message.includes("private")
+          ) {
+            // Private container error
+            console.warn(
+              "Cannot create private container tab in non-private window",
+            );
+          } else if (
+            createError.message &&
+            createError.message.includes("Illegal")
+          ) {
+            // Illegal cookieStoreId error
+            console.warn(
+              "Illegal cookieStoreId - container may not exist or be accessible",
+            );
+          }
+
+          // Try fallback: create tab without container
+          try {
+            await browser.tabs.create({
+              url: tabData.url,
+              pinned: true,
+              active: tabData.active,
+            });
+            restoredCount++;
+          } catch (fallbackError) {
+            console.warn("Fallback tab creation also failed:", fallbackError);
+          }
         }
       }
 
-      showMessage(`Restored ${collection.tabs.length} pinned tab(s)`, 'success');
-
+      let message = `Restored ${restoredCount} of ${collection.tabs.length} pinned tab(s)`;
+      if (missingContainers.length > 0) {
+        message += `. Some containers were missing: ${missingContainers.join(", ")}`;
+      }
+      showMessage(
+        message,
+        restoredCount === collection.tabs.length ? "success" : "error",
+      );
     } catch (error) {
-      console.error('Error restoring tabs:', error);
-      showMessage('Failed to restore tabs', 'error');
+      console.error("Error restoring tabs:", error);
+      showMessage("Failed to restore tabs", "error");
     }
   }
 
   // Update display function
   async function updateDisplay() {
     try {
-      const result = await browser.storage.local.get('savedTabs');
+      const result = await browser.storage.local.get("savedTabs");
       const collection = result.savedTabs;
 
       if (!collection || !collection.tabs || collection.tabs.length === 0) {
-        savedCount.textContent = 'No saved collection';
-        savedTimestamp.textContent = '';
+        savedCount.textContent = "No saved collection";
+        savedTimestamp.textContent = "";
         savedTabs.innerHTML = '<div class="no-saved">No tabs saved yet</div>';
         restoreBtn.disabled = true;
         return;
@@ -132,22 +316,43 @@ document.addEventListener('DOMContentLoaded', function() {
       const savedDate = new Date(collection.timestamp);
       savedTimestamp.textContent = `Saved on ${savedDate.toLocaleDateString()} at ${savedDate.toLocaleTimeString()}`;
 
-      // Update tabs list
-      savedTabs.innerHTML = collection.tabs.map(tab => 
-        `<a href="${tab.url}" class="saved-tab" target="_blank">${tab.title || tab.url}</a>`
-      ).join('');
+      // Update tabs list with container information
+      savedTabs.innerHTML = collection.tabs
+        .map((tab) => {
+          const containerInfo = tab.containerInfo;
+          let containerHtml = "";
+
+          if (containerInfo && !containerInfo.isDefault) {
+            const containerColor = getContainerColor(containerInfo.color);
+            const containerIcon = getContainerIcon(containerInfo.icon);
+
+            containerHtml = `
+            <div class="container-badge" style="background-color: ${containerColor};">
+              ${containerIcon ? `<img src="${containerIcon}" class="container-icon" alt="">` : ""}
+              <span class="container-name">${containerInfo.name}</span>
+            </div>
+          `;
+          }
+
+          return `
+          <div class="saved-tab-item">
+            ${containerHtml}
+            <a href="${tab.url}" class="saved-tab" target="_blank">${tab.title || tab.url}</a>
+          </div>
+        `;
+        })
+        .join("");
 
       // Enable restore button
       restoreBtn.disabled = false;
-
     } catch (error) {
-      console.error('Error updating display:', error);
+      console.error("Error updating display:", error);
     }
   }
 
   // Event listeners
-  saveBtn.addEventListener('click', savePinnedTabs);
-  restoreBtn.addEventListener('click', restorePinnedTabs);
+  saveBtn.addEventListener("click", savePinnedTabs);
+  restoreBtn.addEventListener("click", restorePinnedTabs);
 
   // Initialize display
   updateDisplay();

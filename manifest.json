@@ -9,11 +9,7 @@
     "48": "icons/arrow-down-circle.png"
   },
 
-  "permissions": [
-    "tabs",
-    "contextualIdentities",
-    "storage"
-  ],
+  "permissions": ["tabs", "contextualIdentities", "storage", "cookies"],
 
   "action": {
     "default_icon": {
