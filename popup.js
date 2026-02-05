@@ -157,7 +157,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const collection = {
         tabs: tabData,
         timestamp: Date.now(),
-        windowId: (await browser.windows.getCurrent()).id,
       };
 
       // Save to local storage
