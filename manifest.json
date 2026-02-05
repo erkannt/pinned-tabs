@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Pinned Tab Collection",
-  "version": "1.0",
-  "description": "Save and restore a collection of pinned tabs with their containers",
+  "version": "1.0.0",
+  "description": "Save and restore pinned tabs while preserving their browser containers. Perfect for maintaining consistent workspace setups across sessions.",
+  "homepage_url": "https://github.com/erkannt/pinned-tabs",
+  "author": "rknt <pinned-tab-collections@rknt.de>",
   "icons": {
     "48": "icons/arrow-down-circle.png"
   },
@@ -17,9 +19,13 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "pinned-tab-collections@rknt.de",
+      "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": ["none"]
       }
     }
+  },
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' resource: data:;"
   }
 }
