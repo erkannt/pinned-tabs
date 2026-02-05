@@ -330,11 +330,16 @@ document.addEventListener("DOMContentLoaded", function () {
         const itemDiv = document.createElement("div");
         itemDiv.className = "saved-tab-item";
 
+        const link = document.createElement("a");
+        link.href = tab.url;
+        link.className = "saved-tab";
+        link.target = "_blank";
+        link.textContent = tab.title || tab.url;
         if (containerInfo && !containerInfo.isDefault) {
           const containerColor = getContainerColor(containerInfo.color);
           const containerIcon = getContainerIcon(containerInfo.icon);
 
-          const badgeDiv = document.createElement("div");
+          const badgeDiv = document.createElement("span");
           badgeDiv.className = "container-badge";
           badgeDiv.style.backgroundColor = containerColor;
 
@@ -353,12 +358,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
           itemDiv.appendChild(badgeDiv);
         }
-
-        const link = document.createElement("a");
-        link.href = tab.url;
-        link.className = "saved-tab";
-        link.target = "_blank";
-        link.textContent = tab.title || tab.url;
         itemDiv.appendChild(link);
 
         savedTabs.appendChild(itemDiv);

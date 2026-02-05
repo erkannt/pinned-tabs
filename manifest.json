@@ -6,12 +6,12 @@
   "homepage_url": "https://github.com/erkannt/pinned-tabs",
   "author": "rknt <pinned-tab-collections@rknt.de>",
   "icons": {
-    "48": "icons/arrow-down-circle.png"
+    "48": "icons/arrow-down-circle.svg"
   },
   "permissions": ["tabs", "contextualIdentities", "storage", "cookies"],
   "action": {
     "default_icon": {
-      "48": "icons/arrow-down-circle.png"
+      "48": "icons/arrow-down-circle.svg"
     },
     "default_title": "Pinned Tab Collections",
     "default_popup": "popup.html"
