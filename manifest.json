@@ -2,20 +2,24 @@
   "manifest_version": 3,
   "name": "Pinned Tab Collections",
   "version": "1.0",
-
   "description": "Save and restore collections of pinned tabs with their containers",
-
   "icons": {
     "48": "icons/arrow-down-circle.png"
   },
-
   "permissions": ["tabs", "contextualIdentities", "storage", "cookies"],
-
   "action": {
     "default_icon": {
       "48": "icons/arrow-down-circle.png"
     },
     "default_title": "Pinned Tab Collections",
     "default_popup": "popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "pinned-tab-collections@rknt.de",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
   }
 }

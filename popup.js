@@ -8,7 +8,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Show message function
   function showMessage(text, type) {
-    messageContainer.innerHTML = `<div class="message ${type}">${text}</div>`;
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = text;
+    messageContainer.innerHTML = "";
+    messageContainer.appendChild(messageDiv);
     setTimeout(() => {
       messageContainer.innerHTML = "";
     }, 3000);
@@ -304,7 +308,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!collection || !collection.tabs || collection.tabs.length === 0) {
         savedCount.textContent = "No saved collection";
         savedTimestamp.textContent = "";
-        savedTabs.innerHTML = '<div class="no-saved">No tabs saved yet</div>';
+        savedTabs.innerHTML = "";
+        const noSavedDiv = document.createElement("div");
+        noSavedDiv.className = "no-saved";
+        noSavedDiv.textContent = "No tabs saved yet";
+        savedTabs.appendChild(noSavedDiv);
         restoreBtn.disabled = true;
         return;
       }
@@ -317,31 +325,45 @@ document.addEventListener("DOMContentLoaded", function () {
       savedTimestamp.textContent = `Saved on ${savedDate.toLocaleDateString()} at ${savedDate.toLocaleTimeString()}`;
 
       // Update tabs list with container information
-      savedTabs.innerHTML = collection.tabs
-        .map((tab) => {
-          const containerInfo = tab.containerInfo;
-          let containerHtml = "";
+      savedTabs.innerHTML = "";
+      for (const tab of collection.tabs) {
+        const containerInfo = tab.containerInfo;
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "saved-tab-item";
 
-          if (containerInfo && !containerInfo.isDefault) {
-            const containerColor = getContainerColor(containerInfo.color);
-            const containerIcon = getContainerIcon(containerInfo.icon);
+        if (containerInfo && !containerInfo.isDefault) {
+          const containerColor = getContainerColor(containerInfo.color);
+          const containerIcon = getContainerIcon(containerInfo.icon);
 
-            containerHtml = `
-            <div class="container-badge" style="background-color: ${containerColor};">
-              ${containerIcon ? `<img src="${containerIcon}" class="container-icon" alt="">` : ""}
-              <span class="container-name">${containerInfo.name}</span>
-            </div>
-          `;
+          const badgeDiv = document.createElement("div");
+          badgeDiv.className = "container-badge";
+          badgeDiv.style.backgroundColor = containerColor;
+
+          if (containerIcon) {
+            const iconImg = document.createElement("img");
+            iconImg.src = containerIcon;
+            iconImg.className = "container-icon";
+            iconImg.alt = "";
+            badgeDiv.appendChild(iconImg);
           }
 
-          return `
-          <div class="saved-tab-item">
-            ${containerHtml}
-            <a href="${tab.url}" class="saved-tab" target="_blank">${tab.title || tab.url}</a>
-          </div>
-        `;
-        })
-        .join("");
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "container-name";
+          nameSpan.textContent = containerInfo.name;
+          badgeDiv.appendChild(nameSpan);
+
+          itemDiv.appendChild(badgeDiv);
+        }
+
+        const link = document.createElement("a");
+        link.href = tab.url;
+        link.className = "saved-tab";
+        link.target = "_blank";
+        link.textContent = tab.title || tab.url;
+        itemDiv.appendChild(link);
+
+        savedTabs.appendChild(itemDiv);
+      }
 
       // Enable restore button
       restoreBtn.disabled = false;
