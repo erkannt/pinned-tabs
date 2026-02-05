@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Pinned Tab Collections",
+  "name": "Pinned Tab Collection",
   "version": "1.0",
-  "description": "Save and restore collections of pinned tabs with their containers",
+  "description": "Save and restore a collection of pinned tabs with their containers",
   "icons": {
     "48": "icons/arrow-down-circle.png"
   },
