@@ -1,44 +1,150 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <style>
-            body {
-                width: 300px;
-                padding: 16px;
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    "Helvetica Neue", Arial, sans-serif;
-                font-size: 14px;
-                color: #15141a;
-                background-color: #ffffff;
-                margin: 0;
-            }
-
-            .create-btn {
-                width: 100%;
-                padding: 8px 16px;
-                border: none;
-                border-radius: 4px;
-                background-color: #0060df;
-                color: white;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: background-color 150ms;
-            }
-
-            .create-btn:hover {
-                background-color: #003eaa;
-            }
-
-            .create-btn:active {
-                background-color: #002275;
-            }
-        </style>
-    </head>
-    <body>
-        <button id="createBtn" class="create-btn">Save current pins</button>
-        <script src="popup.js"></script>
-    </body>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      color: #15141a;
+      background-color: #ffffff;
+      margin: 0;
+    }
+    
+    .button-container {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 150ms;
+    }
+    
+    .save-btn {
+      background-color: #0060df;
+      color: white;
+    }
+    
+    .save-btn:hover:not(:disabled) {
+      background-color: #003eaa;
+    }
+    
+    .save-btn:active:not(:disabled) {
+      background-color: #002275;
+    }
+    
+    .restore-btn {
+      background-color: #12bc00;
+      color: white;
+    }
+    
+    .restore-btn:hover:not(:disabled) {
+      background-color: #0e9400;
+    }
+    
+    .restore-btn:active:not(:disabled) {
+      background-color: #0a7300;
+    }
+    
+    .action-btn:disabled {
+      background-color: #d7d7db;
+      color: #737373;
+      cursor: not-allowed;
+    }
+    
+    .saved-info {
+      border-top: 1px solid #e1e1e6;
+      padding-top: 16px;
+    }
+    
+    .saved-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #32323d;
+    }
+    
+    .saved-count {
+      font-size: 12px;
+      color: #737373;
+      margin-bottom: 8px;
+    }
+    
+    .saved-timestamp {
+      font-size: 12px;
+      color: #737373;
+      margin-bottom: 12px;
+    }
+    
+    .saved-tabs {
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .saved-tab {
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid #f0f0f4;
+      color: #0060df;
+      text-decoration: none;
+      display: block;
+      word-break: break-all;
+    }
+    
+    .saved-tab:hover {
+      text-decoration: underline;
+    }
+    
+    .no-saved {
+      font-size: 12px;
+      color: #737373;
+      font-style: italic;
+    }
+    
+    .message {
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .message.success {
+      background-color: #d7edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div id="messageContainer"></div>
+  
+  <div class="button-container">
+    <button id="saveBtn" class="action-btn save-btn">Save</button>
+    <button id="restoreBtn" class="action-btn restore-btn">Restore</button>
+  </div>
+  
+  <div class="saved-info">
+    <div class="saved-title">Saved Collection</div>
+    <div id="savedCount" class="saved-count"></div>
+    <div id="savedTimestamp" class="saved-timestamp"></div>
+    <div id="savedTabs" class="saved-tabs"></div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
 </html>

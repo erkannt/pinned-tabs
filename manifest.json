@@ -11,7 +11,8 @@
 
   "permissions": [
     "tabs",
-    "contextualIdentities"
+    "contextualIdentities",
+    "storage"
   ],
 
   "action": {
