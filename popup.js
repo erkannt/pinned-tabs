@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
   async function checkCookiesPermission() {
     try {
       // Try to access cookies API to check permission
-      const allCookies = await browser.cookies.getAll({});
+      await browser.cookies.getAll({});
       return true;
     } catch (error) {
       console.warn("Cookies permission not available:", error);
