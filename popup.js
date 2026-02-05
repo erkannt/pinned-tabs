@@ -2,8 +2,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const saveBtn = document.getElementById("saveBtn");
   const restoreBtn = document.getElementById("restoreBtn");
   const messageContainer = document.getElementById("messageContainer");
-  const savedCount = document.getElementById("savedCount");
-  const savedTimestamp = document.getElementById("savedTimestamp");
   const savedTabs = document.getElementById("savedTabs");
 
   // Show message function
@@ -305,8 +303,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const collection = result.savedTabs;
 
       if (!collection || !collection.tabs || collection.tabs.length === 0) {
-        savedCount.textContent = "No saved collection";
-        savedTimestamp.textContent = "";
         savedTabs.innerHTML = "";
         const noSavedDiv = document.createElement("div");
         noSavedDiv.className = "no-saved";
@@ -315,13 +311,6 @@ document.addEventListener("DOMContentLoaded", function () {
         restoreBtn.disabled = true;
         return;
       }
-
-      // Update count
-      savedCount.textContent = `${collection.tabs.length} tab(s) saved`;
-
-      // Update timestamp
-      const savedDate = new Date(collection.timestamp);
-      savedTimestamp.textContent = `Saved on ${savedDate.toLocaleDateString()} at ${savedDate.toLocaleTimeString()}`;
 
       // Update tabs list with container information
       savedTabs.innerHTML = "";
