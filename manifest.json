@@ -1,18 +1,24 @@
 {
-  "manifest_version": 2,
-  "name": "Borderify",
+  "manifest_version": 3,
+  "name": "Pinned Tab Collections",
   "version": "1.0",
 
-  "description": "Adds a red border to all webpages matching mozilla.org.",
+  "description": "Save and restore collections of pinned tabs with their containers",
 
   "icons": {
     "48": "icons/arrow-down-circle.png"
   },
 
-  "content_scripts": [
-    {
-      "matches": ["*://*.mozilla.org/*"],
-      "js": ["behaviour.js"]
-    }
-  ]
+  "permissions": [
+    "tabs",
+    "contextualIdentities"
+  ],
+
+  "action": {
+    "default_icon": {
+      "48": "icons/arrow-down-circle.png"
+    },
+    "default_title": "Pinned Tab Collections",
+    "default_popup": "popup.html"
+  }
 }
